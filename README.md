@@ -6,9 +6,6 @@ A Flutter plugin that tells what the device is, from one read of the platform: t
 **"Redmi 9A"**, **"Galaxy XCover 5"**, **"iPhone 12 mini"** - instead of the hardware code the platform reports as
 the model ("M2006C3LG", "SM-G525F", "iPhone"), the kind of device, and whether its display is round.
 
-It succeeds [device_display_name](https://pub.dev/packages/device_display_name), which gave the name and the kind;
-see [Moving from device_display_name](#moving-from-device_display_name).
-
 A list of signed-in devices - a sessions screen, a "too many devices" prompt - usually shows `Build.MODEL` or
 `UIDevice.model`. On many Android phones that is a code nobody recognizes, and on every iPhone it is just
 "iPhone", so a user with two of them cannot tell which one to sign out. No single field holds the real name on
@@ -203,22 +200,6 @@ The device kind was checked on Galaxy Tab A7 and Lenovo Tab M8 (`tablet`), Redmi
 and a TV have not been run.
 
 </details>
-
-## Moving from device_display_name
-
-`device_profile` is `device_display_name` with the kind and the shape of the display beside the name, from the same
-one read. The name, its sources and the user-assigned modes are unchanged.
-
-| device_display_name | device_profile |
-|---|---|
-| `PlatformDeviceDisplayName().read()` -> `DisplayName?` | `PlatformDeviceProfile().read()` -> `DeviceProfile?` |
-| `DeviceDisplayName` | `DeviceProfileReader` |
-| `name.name`, `name.fullName`, `name.source` | `profile.name.name`, `profile.name.fullName`, `profile.name.source` |
-| `name.kind` | `profile.kind` |
-| - | `profile.screenShape` |
-| `chooseAndroidName`, `chooseIosName(machine, idiom:)` | `chooseAndroidProfile`, `chooseIosProfile(machine, idiom:)`; `chooseAndroidName` and `chooseIosName(machine)` give the name alone |
-
-The method channel is `device_profile`; the two plugins do not share it, so an app moves over in one step.
 
 ## Repository
 
