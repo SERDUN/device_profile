@@ -1,6 +1,6 @@
 name: device_profile
-description: "What the device is: the name a person knows it by (Redmi 9A, Galaxy XCover 5, iPhone 12 mini) instead of its hardware code, the kind of device, and whether its display is round."
-version: 0.1.0
+description: "What the device is, in one read: its marketing name instead of the hardware code, its kind (phone, tablet, watch, TV) and whether the display is round."
+version: 0.1.1
 homepage: https://github.com/SERDUN/device_profile
 repository: https://github.com/SERDUN/device_profile
 issue_tracker: https://github.com/SERDUN/device_profile/issues

@@ -2,14 +2,18 @@
 
 [![pub package](https://img.shields.io/pub/v/device_profile.svg)](https://pub.dev/packages/device_profile)
 
-A Flutter plugin that tells what the device is, from one read of the platform: the name a person knows it by -
-**"Redmi 9A"**, **"Galaxy XCover 5"**, **"iPhone 12 mini"** - instead of the hardware code the platform reports as
-the model ("M2006C3LG", "SM-G525F", "iPhone"), the kind of device, and whether its display is round.
+A Flutter plugin that tells what the device is, from one read of the platform:
 
-A list of signed-in devices - a sessions screen, a "too many devices" prompt - usually shows `Build.MODEL` or
-`UIDevice.model`. On many Android phones that is a code nobody recognizes, and on every iPhone it is just
-"iPhone", so a user with two of them cannot tell which one to sign out. No single field holds the real name on
-every phone: each maker keeps it somewhere else. This plugin knows where, reads it, and picks the best one.
+- **its name** - "Redmi 9A", "Galaxy XCover 5", "iPhone 12 mini" - instead of the hardware code the platform
+  reports ("M2006C3LG", "SM-G525F", "iPhone");
+- **its kind** - phone, tablet, foldable, watch, TV, car, desktop or headset;
+- **the shape of its display** - round or rectangular, which Flutter cannot tell: a round Wear OS face and a square
+  one are both a square window to it.
+
+A sessions screen needs the name: `Build.MODEL` is a code nobody recognizes on many Android phones, and on every
+iPhone it is just "iPhone". A watch layout needs the shape. Both come from what the device itself carries, read
+once. No single field holds the real name on every phone - each maker keeps it somewhere else; this plugin knows
+where, reads it, and picks the best one.
 
 ## Features
 
@@ -39,7 +43,7 @@ every phone: each maker keeps it somewhere else. This plugin knows where, reads 
 
 ```yaml
 dependencies:
-  device_profile: ^0.1.0
+  device_profile: ^0.1.1
 ```
 
 ```sh

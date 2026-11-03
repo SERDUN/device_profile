@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'device_profile'
-  s.version          = '0.1.0'
+  s.version          = '0.1.1'
   s.summary          = 'What the device is: its name, its kind and the shape of its display.'
   s.description      = <<-DESC
 The name a person knows the device by instead of its hardware code, the kind of device, and the shape of its display.

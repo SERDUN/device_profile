@@ -1,3 +1,8 @@
+## 0.1.1
+
+- The package description and the README open with all three things the profile tells: the name, the kind
+  and the shape of the display.
+
 ## 0.1.0
 
 ### Added
