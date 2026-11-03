@@ -1,4 +1,4 @@
-# device_display_name example
+# device_profile example
 
 Shows what the plugin gives on the device it runs on: the name in the default mode and with
 `UserAssignedName.preferred`, where each came from, the device kind with its icon, `fullName`,

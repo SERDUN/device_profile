@@ -1,4 +1,4 @@
-package com.serdun.device_display_name_example
+package com.serdun.device_profile_example
 
 import io.flutter.embedding.android.FlutterActivity
 

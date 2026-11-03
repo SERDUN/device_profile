@@ -2,12 +2,12 @@ import Flutter
 import UIKit
 import XCTest
 
-@testable import device_display_name
+@testable import device_profile
 
 class RunnerTests: XCTestCase {
 
   func testReadGivesTheIdentifierAndTheIdiom() {
-    let plugin = DeviceDisplayNamePlugin()
+    let plugin = DeviceProfilePlugin()
     let call = FlutterMethodCall(methodName: "read", arguments: nil)
 
     let resultExpectation = expectation(description: "result block must be called.")
@@ -21,7 +21,7 @@ class RunnerTests: XCTestCase {
   }
 
   func testAnotherMethodIsNotImplemented() {
-    let plugin = DeviceDisplayNamePlugin()
+    let plugin = DeviceProfilePlugin()
     let call = FlutterMethodCall(methodName: "getPlatformVersion", arguments: nil)
 
     let resultExpectation = expectation(description: "result block must be called.")

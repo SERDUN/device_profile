@@ -13,11 +13,12 @@ export 'src/android_name_choice.dart'
         AndroidKeys,
         AndroidNameSources,
         chooseAndroidName,
+        chooseAndroidProfile,
         androidKeysFor,
         androidKeysOfAllMakers,
         androidKeysByMaker;
 export 'src/device_kind.dart' show DeviceKind, androidKind, iosKind;
-export 'src/ios_name_choice.dart' show chooseIosName;
+export 'src/ios_name_choice.dart' show chooseIosName, chooseIosProfile;
 export 'src/labels.dart' show distinctLabels, userAgentToken;
 
 /// Where a [DisplayName] was taken from.
@@ -74,7 +75,6 @@ final class DisplayName {
     this.source, {
     this.key,
     String? fullName,
-    this.kind = DeviceKind.unknown,
     // A named parameter cannot be private, so the field is set from it.
     // ignore: prefer_initializing_formals
   }) : _fullName = fullName;
@@ -98,10 +98,6 @@ final class DisplayName {
   /// The name the user gave the device is kept as it is.
   String get fullName => _fullName ?? name;
 
-  /// Phone, tablet, foldable, watch, TV and so on - for an icon or a word
-  /// next to the name.
-  final DeviceKind kind;
-
   /// Whether [name] is a real marketing name rather than a code put together
   /// from what was left.
   bool get isMarketingName =>
@@ -111,8 +107,8 @@ final class DisplayName {
   /// (the rest percent-encoded as UTF-8).
   String get userAgentToken => labels.userAgentToken(fullName);
 
-  /// Equality covers [name], [source] and [key]; [fullName] and [kind] are
-  /// read from the same device and follow from them.
+  /// Equality covers [name], [source] and [key]; [fullName] is read from the
+  /// same device and follows from them.
   @override
   bool operator ==(Object other) =>
       other is DisplayName &&
@@ -125,35 +121,80 @@ final class DisplayName {
 
   @override
   String toString() =>
-      'DisplayName($name, ${source.name}${key == null ? '' : ', $key'}, ${kind.name})';
+      'DisplayName($name, ${source.name}${key == null ? '' : ', $key'})';
 }
 
-/// Gives the marketing name of the device the app runs on.
-abstract interface class DeviceDisplayName {
-  /// The name of this device, or null where the platform is not supported or
-  /// could not be asked.
+/// The outline of the display.
+enum ScreenShape {
+  /// A round face: a Wear OS watch such as the Pixel Watch or a Galaxy Watch.
+  /// Its corners are outside the screen.
+  round,
+
+  /// Every other display: phones, tablets, square and rectangular watches.
+  rectangular;
+
+  bool get isRound => this == round;
+}
+
+/// What the device the app runs on is: the name a person knows it by, the
+/// kind of device, and the shape of its display - all from one read of the
+/// platform.
+@immutable
+final class DeviceProfile {
+  const DeviceProfile({
+    required this.name,
+    required this.kind,
+    required this.screenShape,
+  });
+
+  /// The name a person knows the device by, and where it came from.
+  final DisplayName name;
+
+  /// Phone, tablet, foldable, watch, TV and so on - for an icon or a word
+  /// next to the name.
+  final DeviceKind kind;
+
+  /// Round or rectangular. Flutter cannot tell: a round watch face and a
+  /// square one are both a square window to it.
+  final ScreenShape screenShape;
+
+  @override
+  bool operator ==(Object other) =>
+      other is DeviceProfile &&
+      other.name == name &&
+      other.kind == kind &&
+      other.screenShape == screenShape;
+
+  @override
+  int get hashCode => Object.hash(name, kind, screenShape);
+
+  @override
+  String toString() =>
+      'DeviceProfile($name, ${kind.name}, ${screenShape.name})';
+}
+
+/// Tells what the device the app runs on is.
+abstract interface class DeviceProfileReader {
+  /// The profile of this device, or null where the platform is not supported
+  /// or could not be asked.
   ///
-  /// Never throws. On Android and iOS a name is always given, at worst the
-  /// brand and the hardware code - see [DisplayName.isMarketingName].
-  Future<DisplayName?> read();
+  /// Never throws. On Android and iOS a profile is always given, its name at
+  /// worst the brand and the hardware code - see [DisplayName.isMarketingName].
+  Future<DeviceProfile?> read();
 }
 
-/// [DeviceDisplayName] answered by the platform side of this plugin.
+/// [DeviceProfileReader] answered by the platform side of this plugin.
 ///
 /// The platform side only reads what the device carries; the choice among the
-/// values is made here, in [chooseAndroidName] and [chooseIosName].
-class PlatformDeviceDisplayName implements DeviceDisplayName {
-  const PlatformDeviceDisplayName({
-    this.userAssignedName = UserAssignedName.never,
-  });
+/// values is made here, in [chooseAndroidProfile] and [chooseIosProfile].
+class PlatformDeviceProfile implements DeviceProfileReader {
+  const PlatformDeviceProfile({this.userAssignedName = UserAssignedName.never});
 
   /// Whether and where the name the user gave the device is used. It can
   /// carry a person's name, so it is off unless the app asks.
   final UserAssignedName userAssignedName;
 
-  static const MethodChannel _methodChannel = MethodChannel(
-    'device_display_name',
-  );
+  static const MethodChannel _methodChannel = MethodChannel('device_profile');
 
   /// What the platform gave once. It cannot change while the process lives,
   /// so the platform is asked once; a failure is not kept.
@@ -164,7 +205,7 @@ class PlatformDeviceDisplayName implements DeviceDisplayName {
   static void debugForget() => _known = null;
 
   @override
-  Future<DisplayName?> read() async {
+  Future<DeviceProfile?> read() async {
     final raw = await readSources();
     if (raw == null) return null;
 
@@ -173,9 +214,9 @@ class PlatformDeviceDisplayName implements DeviceDisplayName {
         final machine = raw['machine'] as String?;
         return machine == null || machine.isEmpty
             ? null
-            : chooseIosName(machine, idiom: raw['idiom'] as String?);
+            : chooseIosProfile(machine, idiom: raw['idiom'] as String?);
       }
-      return chooseAndroidName(
+      return chooseAndroidProfile(
         AndroidNameSources.fromMap(raw),
         userAssignedName: userAssignedName,
       );

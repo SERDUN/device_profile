@@ -3,19 +3,19 @@
 import PackageDescription
 
 let package = Package(
-    name: "device_display_name",
+    name: "device_profile",
     platforms: [
         .iOS("15.0")
     ],
     products: [
-        .library(name: "device-display-name", targets: ["device_display_name"])
+        .library(name: "device-profile", targets: ["device_profile"])
     ],
     dependencies: [
         .package(name: "FlutterFramework", path: "../FlutterFramework")
     ],
     targets: [
         .target(
-            name: "device_display_name",
+            name: "device_profile",
             dependencies: [
                 .product(name: "FlutterFramework", package: "FlutterFramework")
             ],

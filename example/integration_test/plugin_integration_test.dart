@@ -5,22 +5,31 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
-import 'package:device_display_name/device_display_name.dart';
+import 'package:device_profile/device_profile.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  const DeviceDisplayName deviceName = PlatformDeviceDisplayName();
+  const DeviceProfileReader deviceProfile = PlatformDeviceProfile();
 
-  testWidgets('read gives a name', (tester) async {
-    final name = await deviceName.read();
+  testWidgets('read gives a profile with a name', (tester) async {
+    final profile = await deviceProfile.read();
 
-    expect(name, isNotNull);
-    expect(name!.name, isNotEmpty);
+    expect(profile, isNotNull);
+    expect(profile!.name.name, isNotEmpty);
+  });
+
+  testWidgets('the platform reports the shape of the display', (tester) async {
+    final sources = await const PlatformDeviceProfile().readSources();
+
+    expect(
+      sources,
+      anyOf(containsPair('isScreenRound', isA<bool>()), contains('machine')),
+    );
   });
 
   testWidgets('the platform reads the build fields', (tester) async {
-    final sources = await const PlatformDeviceDisplayName().readSources();
+    final sources = await const PlatformDeviceProfile().readSources();
 
     expect(sources, isNotNull);
     expect(sources!.keys, anyOf(contains('model'), contains('machine')));

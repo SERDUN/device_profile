@@ -1,4 +1,4 @@
-group = "com.serdun.device_display_name"
+group = "com.serdun.device_profile"
 version = "1.0-SNAPSHOT"
 
 buildscript {
@@ -26,7 +26,7 @@ plugins {
 }
 
 android {
-    namespace = "com.serdun.device_display_name"
+    namespace = "com.serdun.device_profile"
 
     compileSdk = 36
 

@@ -1,14 +1,15 @@
-name: device_display_name
-description: "The name a person knows their device by (Redmi 9A, Galaxy XCover 5, iPhone 12 mini) instead of its hardware code, and the kind of device it is."
-version: 0.1.1
-homepage: https://github.com/SERDUN/device_display_name
-repository: https://github.com/SERDUN/device_display_name
-issue_tracker: https://github.com/SERDUN/device_display_name/issues
+name: device_profile
+description: "What the device is: the name a person knows it by (Redmi 9A, Galaxy XCover 5, iPhone 12 mini) instead of its hardware code, the kind of device, and whether its display is round."
+version: 0.1.0
+homepage: https://github.com/SERDUN/device_profile
+repository: https://github.com/SERDUN/device_profile
+issue_tracker: https://github.com/SERDUN/device_profile/issues
 topics:
   - device
   - device-info
   - android
   - ios
+  - wear-os
 
 environment:
   sdk: ^3.13.0
@@ -31,7 +32,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: com.serdun.device_display_name
-        pluginClass: DeviceDisplayNamePlugin
+        package: com.serdun.device_profile
+        pluginClass: DeviceProfilePlugin
       ios:
-        pluginClass: DeviceDisplayNamePlugin
+        pluginClass: DeviceProfilePlugin

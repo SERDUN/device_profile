@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:device_display_name/device_display_name.dart';
+import 'package:device_profile/device_profile.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,13 +14,13 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  static const _deviceName = PlatformDeviceDisplayName();
-  static const _withUserName = PlatformDeviceDisplayName(
+  static const _deviceProfile = PlatformDeviceProfile();
+  static const _withUserName = PlatformDeviceProfile(
     userAssignedName: UserAssignedName.preferred,
   );
 
-  DisplayName? _name;
-  DisplayName? _nameWithUserName;
+  DeviceProfile? _profile;
+  DeviceProfile? _profileWithUserName;
   Map<Object?, Object?>? _sources;
   bool _loaded = false;
 
@@ -31,13 +31,13 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _load() async {
-    final name = await _deviceName.read();
-    final nameWithUserName = await _withUserName.read();
-    final sources = await _deviceName.readSources();
+    final profile = await _deviceProfile.read();
+    final profileWithUserName = await _withUserName.read();
+    final sources = await _deviceProfile.readSources();
     if (!mounted) return;
     setState(() {
-      _name = name;
-      _nameWithUserName = nameWithUserName;
+      _profile = profile;
+      _profileWithUserName = profileWithUserName;
       _sources = sources;
       _loaded = true;
     });
@@ -47,16 +47,16 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(title: const Text('device_display_name')),
+        appBar: AppBar(title: const Text('device_profile')),
         body: !_loaded
             ? const Center(child: CircularProgressIndicator())
             : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  _NameTile(title: 'Name', name: _name),
-                  _NameTile(
-                    title: 'Name, user-assigned preferred',
-                    name: _nameWithUserName,
+                  _ProfileTile(title: 'Profile', profile: _profile),
+                  _ProfileTile(
+                    title: 'Profile, user-assigned name preferred',
+                    profile: _profileWithUserName,
                   ),
                   const Divider(),
                   Text(
@@ -101,23 +101,23 @@ IconData _iconOf(DeviceKind kind) => switch (kind) {
   DeviceKind.unknown => Icons.device_unknown,
 };
 
-class _NameTile extends StatelessWidget {
-  const _NameTile({required this.title, required this.name});
+class _ProfileTile extends StatelessWidget {
+  const _ProfileTile({required this.title, required this.profile});
 
   final String title;
-  final DisplayName? name;
+  final DeviceProfile? profile;
 
   @override
   Widget build(BuildContext context) {
-    final name = this.name;
+    final name = profile?.name;
     return ListTile(
-      leading: Icon(_iconOf(name?.kind ?? DeviceKind.unknown)),
+      leading: Icon(_iconOf(profile?.kind ?? DeviceKind.unknown)),
       title: Text(name?.name ?? '-'),
       subtitle: Text(
         name == null
             ? title
             : '$title - ${name.source.name}${name.key == null ? '' : ' (${name.key})'}\n'
-                  'kind: ${name.kind.name} - full: ${name.fullName}\n'
+                  'kind: ${profile!.kind.name} - screen: ${profile!.screenShape.name} - full: ${name.fullName}\n'
                   'User-Agent: ${name.userAgentToken}',
       ),
     );

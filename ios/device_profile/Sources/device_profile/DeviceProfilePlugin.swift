@@ -4,18 +4,18 @@ import UIKit
 
 /// Reads the hardware identifier of the device ("iPhone13,1"). The Dart side turns it into a name
 /// with its table: iOS has no public API that returns the marketing name.
-public class DeviceDisplayNamePlugin: NSObject, FlutterPlugin {
-  private static let methodChannelName = "device_display_name"
+public class DeviceProfilePlugin: NSObject, FlutterPlugin {
+  private static let methodChannelName = "device_profile"
   private static let methodRead = "read"
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: methodChannelName, binaryMessenger: registrar.messenger())
-    registrar.addMethodCallDelegate(DeviceDisplayNamePlugin(), channel: channel)
+    registrar.addMethodCallDelegate(DeviceProfilePlugin(), channel: channel)
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    if call.method == DeviceDisplayNamePlugin.methodRead {
-      result(["machine": DeviceDisplayNamePlugin.machine(), "idiom": DeviceDisplayNamePlugin.idiom()])
+    if call.method == DeviceProfilePlugin.methodRead {
+      result(["machine": DeviceProfilePlugin.machine(), "idiom": DeviceProfilePlugin.idiom()])
     } else {
       result(FlutterMethodNotImplemented)
     }

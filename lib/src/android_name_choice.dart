@@ -1,4 +1,4 @@
-import '../device_display_name.dart';
+import '../device_profile.dart';
 import 'device_kind.dart';
 
 /// What an Android device carries that can name it, read by the platform side.
@@ -17,6 +17,7 @@ final class AndroidNameSources {
     this.features = const {},
     this.smallestScreenWidthDp,
     this.characteristics = '',
+    this.isScreenRound = false,
   });
 
   factory AndroidNameSources.fromMap(Map<Object?, Object?> map) {
@@ -41,6 +42,7 @@ final class AndroidNameSources {
       },
       smallestScreenWidthDp: map['smallestScreenWidthDp'] as int?,
       characteristics: map['characteristics'] as String? ?? '',
+      isScreenRound: map['isScreenRound'] as bool? ?? false,
     );
   }
 
@@ -74,6 +76,9 @@ final class AndroidNameSources {
   /// `ro.build.characteristics`: "tablet", "tv", "watch", "automotive",
   /// "default", sometimes with more after a comma ("tablet,nosdcard").
   final String characteristics;
+
+  /// `Configuration.isScreenRound`: a round display, as the maker declares it.
+  final bool isScreenRound;
 }
 
 /// Where a maker keeps the factory name of its devices.
@@ -279,13 +284,26 @@ DisplayName chooseAndroidName(
     fullName: chosen.source == NameSource.userAssigned
         ? chosen.name
         : _withAnyBrand(sources, chosen.name),
-    kind: androidKind(
-      sources.features,
-      sources.smallestScreenWidthDp,
-      characteristics: sources.characteristics,
-    ),
   );
 }
+
+/// The whole profile of an Android device from what its platform side read:
+/// the name [chooseAndroidName] picks, the kind [androidKind] tells, and the
+/// shape `Configuration.isScreenRound` reports.
+DeviceProfile chooseAndroidProfile(
+  AndroidNameSources sources, {
+  UserAssignedName userAssignedName = UserAssignedName.never,
+}) => DeviceProfile(
+  name: chooseAndroidName(sources, userAssignedName: userAssignedName),
+  kind: androidKind(
+    sources.features,
+    sources.smallestScreenWidthDp,
+    characteristics: sources.characteristics,
+  ),
+  screenShape: sources.isScreenRound
+      ? ScreenShape.round
+      : ScreenShape.rectangular,
+);
 
 DisplayName _choose(
   AndroidNameSources sources,

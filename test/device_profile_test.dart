@@ -7,13 +7,13 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:device_display_name/device_display_name.dart';
+import 'package:device_profile/device_profile.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const MethodChannel channel = MethodChannel('device_display_name');
-  const DeviceDisplayName deviceName = PlatformDeviceDisplayName();
+  const MethodChannel channel = MethodChannel('device_profile');
+  const DeviceProfileReader deviceProfile = PlatformDeviceProfile();
 
   final calls = <MethodCall>[];
 
@@ -27,7 +27,7 @@ void main() {
 
   setUp(() {
     calls.clear();
-    PlatformDeviceDisplayName.debugForget();
+    PlatformDeviceProfile.debugForget();
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
   });
 
@@ -51,7 +51,7 @@ void main() {
     );
 
     expect(
-      await deviceName.read(),
+      (await deviceProfile.read())?.name,
       const DisplayName(
         'Galaxy XCover 5',
         NameSource.factorySetting,
@@ -69,7 +69,7 @@ void main() {
       },
     );
 
-    await deviceName.read();
+    await deviceProfile.read();
 
     final keysByMaker =
         (calls.single.arguments as Map)['keysByMaker'] as Map<Object?, Object?>;
@@ -87,7 +87,7 @@ void main() {
         () async => {'manufacturer': 'Acme', 'brand': 'Acme', 'model': 'AC-1'},
       );
 
-      await const PlatformDeviceDisplayName().readSources(allMakerKeys: true);
+      await const PlatformDeviceProfile().readSources(allMakerKeys: true);
       final keysByMaker =
           (calls.single.arguments as Map)['keysByMaker']
               as Map<Object?, Object?>;
@@ -97,7 +97,7 @@ void main() {
         contains('ro.vendor.oplus.market.name'),
       );
 
-      await deviceName.read();
+      await deviceProfile.read();
       expect(calls, hasLength(2));
     },
   );
@@ -107,7 +107,7 @@ void main() {
     answer(() async => {'machine': 'iPhone13,1'});
 
     expect(
-      await deviceName.read(),
+      (await deviceProfile.read())?.name,
       const DisplayName(
         'iPhone 12 mini',
         NameSource.identifierTable,
@@ -123,7 +123,7 @@ void main() {
       answer(() async => {'machine': 'iPhone99,1'});
 
       expect(
-        await deviceName.read(),
+        (await deviceProfile.read())?.name,
         const DisplayName('iPhone99,1', NameSource.identifier),
       );
     },
@@ -138,8 +138,8 @@ void main() {
       },
     );
 
-    await deviceName.read();
-    await deviceName.read();
+    await deviceProfile.read();
+    await deviceProfile.read();
 
     expect(calls, hasLength(1));
   });
@@ -155,13 +155,13 @@ void main() {
     );
 
     expect(
-      (await const PlatformDeviceDisplayName().read())!.source,
+      (await const PlatformDeviceProfile().read())!.name.source,
       NameSource.brandAndModel,
     );
     expect(
-      (await const PlatformDeviceDisplayName(
+      (await const PlatformDeviceProfile(
         userAssignedName: UserAssignedName.fallback,
-      ).read())!.source,
+      ).read())!.name.source,
       NameSource.userAssigned,
     );
   });
@@ -169,12 +169,12 @@ void main() {
   test('a platform error answers null', () async {
     answer(() async => throw PlatformException(code: 'boom'));
 
-    expect(await deviceName.read(), isNull);
+    expect(await deviceProfile.read(), isNull);
   });
 
   test('a failure is not remembered', () async {
     answer(() async => throw PlatformException(code: 'boom'));
-    expect(await deviceName.read(), isNull);
+    expect(await deviceProfile.read(), isNull);
 
     answer(
       () async => {
@@ -183,7 +183,7 @@ void main() {
         'model': 'Pixel 9',
       },
     );
-    expect((await deviceName.read())!.name, 'Pixel 9');
+    expect((await deviceProfile.read())!.name.name, 'Pixel 9');
   });
 
   test(
@@ -192,7 +192,7 @@ void main() {
       debugDefaultTargetPlatformOverride = TargetPlatform.linux;
       answer(() async => {'model': 'x'});
 
-      expect(await deviceName.read(), isNull);
+      expect(await deviceProfile.read(), isNull);
       expect(calls, isEmpty);
     },
   );
@@ -207,8 +207,57 @@ void main() {
     );
 
     expect(
-      await const PlatformDeviceDisplayName().readSources(),
+      await const PlatformDeviceProfile().readSources(),
       containsPair('model', 'Pixel 9'),
     );
+  });
+
+  test(
+    'Android: the shape and the kind come with the name, from the same read',
+    () async {
+      answer(
+        () async => {
+          'manufacturer': 'Google',
+          'brand': 'google',
+          'model': 'Pixel Watch 3',
+          'features': ['android.hardware.type.watch'],
+          'smallestScreenWidthDp': 192,
+          'isScreenRound': true,
+        },
+      );
+
+      final profile = await deviceProfile.read();
+      expect(profile?.kind, DeviceKind.watch);
+      expect(profile?.screenShape, ScreenShape.round);
+      expect(calls, hasLength(1));
+    },
+  );
+
+  test(
+    'Android: a platform side that does not report the shape reads rectangular',
+    () async {
+      answer(
+        () async => {
+          'manufacturer': 'Google',
+          'brand': 'google',
+          'model': 'Pixel 9',
+        },
+      );
+
+      expect(
+        (await deviceProfile.read())?.screenShape,
+        ScreenShape.rectangular,
+      );
+    },
+  );
+
+  test('iOS: a rectangular display, the kind from the idiom', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    answer(() async => {'machine': 'iPhone13,1', 'idiom': 'phone'});
+
+    final profile = await deviceProfile.read();
+    expect(profile?.name.name, 'iPhone 12 mini');
+    expect(profile?.kind, DeviceKind.phone);
+    expect(profile?.screenShape, ScreenShape.rectangular);
   });
 }

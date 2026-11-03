@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:device_display_name/device_display_name.dart';
+import 'package:device_profile/device_profile.dart';
 
 void main() {
   // What real devices report to an app (targetSdk 36, no permissions).

@@ -1,1 +1,1 @@
-rootProject.name = "device_display_name"
+rootProject.name = "device_profile"

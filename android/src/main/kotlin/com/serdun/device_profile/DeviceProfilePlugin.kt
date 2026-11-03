@@ -1,4 +1,4 @@
-package com.serdun.device_display_name
+package com.serdun.device_profile
 
 import android.content.Context
 import android.os.Build
@@ -14,9 +14,9 @@ import java.lang.reflect.Method
  * Reads what the device carries that can name it. Which keys, and which value wins, is decided on the
  * Dart side; this side only reads and leaves out what is empty or unreadable.
  */
-class DeviceDisplayNamePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
+class DeviceProfilePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private companion object {
-        const val METHOD_CHANNEL_NAME = "device_display_name"
+        const val METHOD_CHANNEL_NAME = "device_profile"
         const val METHOD_READ = "read"
     }
 
@@ -68,6 +68,9 @@ class DeviceDisplayNamePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         // which is fixed per device whatever the orientation.
         "features" to featureNames.filter { feature -> hasFeature(feature) },
         "smallestScreenWidthDp" to context.resources.configuration.smallestScreenWidthDp,
+        // Whether the display is round, as the maker declares it; a round watch face and a square one are both a
+        // square window to Flutter. Exists since API 23, below the plugin's minimum.
+        "isScreenRound" to context.resources.configuration.isScreenRound,
         // The build says "tablet" on tablets narrower than 600 dp (the 8-inch Lenovo Tab M8 is 533 dp); the
         // property is labelled build_prop, which apps may read.
         "characteristics" to SystemProperty.read("ro.build.characteristics").orEmpty(),

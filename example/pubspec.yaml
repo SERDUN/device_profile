@@ -1,14 +1,14 @@
-name: device_display_name_example
-description: "Shows what device_display_name gives on the device it runs on."
+name: device_profile_example
+description: "Shows what device_profile gives on the device it runs on."
 publish_to: 'none'
 
 environment:
-  sdk: ^3.13.5
+  sdk: ^3.13.0
 
 dependencies:
   flutter:
     sdk: flutter
-  device_display_name:
+  device_profile:
     path: ../
 
 dev_dependencies:

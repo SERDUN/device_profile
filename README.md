@@ -1,10 +1,13 @@
-# device_display_name
+# device_profile
 
-[![pub package](https://img.shields.io/pub/v/device_display_name.svg)](https://pub.dev/packages/device_display_name)
+[![pub package](https://img.shields.io/pub/v/device_profile.svg)](https://pub.dev/packages/device_profile)
 
-A Flutter plugin that gives the name a person knows their device by - **"Redmi 9A"**, **"Galaxy XCover 5"**,
-**"iPhone 12 mini"** - instead of the hardware code the platform reports as the model ("M2006C3LG", "SM-G525F",
-"iPhone"), and tells what kind of device it is.
+A Flutter plugin that tells what the device is, from one read of the platform: the name a person knows it by -
+**"Redmi 9A"**, **"Galaxy XCover 5"**, **"iPhone 12 mini"** - instead of the hardware code the platform reports as
+the model ("M2006C3LG", "SM-G525F", "iPhone"), the kind of device, and whether its display is round.
+
+It succeeds [device_display_name](https://pub.dev/packages/device_display_name), which gave the name and the kind;
+see [Moving from device_display_name](#moving-from-device_display_name).
 
 A list of signed-in devices - a sessions screen, a "too many devices" prompt - usually shows `Build.MODEL` or
 `UIDevice.model`. On many Android phones that is a code nobody recognizes, and on every iPhone it is just
@@ -18,6 +21,9 @@ every phone: each maker keeps it somewhere else. This plugin knows where, reads 
 - **Never a wrong device** - codes, placeholders and codenames are rejected; when nothing better is there, you get
   the brand and the code ("Samsung SM-G525F") and `isMarketingName` tells you so.
 - **The device kind** - phone, tablet, foldable, watch, TV, car, desktop or headset, for the right icon.
+- **The shape of the display** - round or rectangular, as Android's `Configuration.isScreenRound` reports it. A
+  round Wear OS face and a square one are both a square window to Flutter; a watch layout that keeps clear of a
+  round bezel needs to know which one it is on.
 - **The user's own name, only if you want it** - "Anna's XCover 5" tells two Galaxies apart, but it can carry a
   person's name, so it is off unless you ask.
 - **Ready for a sessions list** - `fullName` with the brand in front, a `userAgentToken` safe for a header, and
@@ -36,7 +42,7 @@ every phone: each maker keeps it somewhere else. This plugin knows where, reads 
 
 ```yaml
 dependencies:
-  device_display_name: ^0.1.0
+  device_profile: ^0.1.0
 ```
 
 ```sh
@@ -46,15 +52,16 @@ flutter pub get
 ## Usage
 
 ```dart
-import 'package:device_display_name/device_display_name.dart';
+import 'package:device_profile/device_profile.dart';
 
-final device = await const PlatformDeviceDisplayName().read();
+final device = await const PlatformDeviceProfile().read();
 
-device?.name;            // "Galaxy Tab A7"
-device?.fullName;        // "Samsung Galaxy Tab A7"
-device?.kind;            // DeviceKind.tablet
-device?.isMarketingName; // true - false when only the brand and the code were left
-device?.source;          // NameSource.factorySetting - where the name came from
+device?.name.name;            // "Galaxy Tab A7"
+device?.name.fullName;        // "Samsung Galaxy Tab A7"
+device?.name.isMarketingName; // true - false when only the brand and the code were left
+device?.name.source;          // NameSource.factorySetting - where the name came from
+device?.kind;                 // DeviceKind.tablet
+device?.screenShape;          // ScreenShape.rectangular - ScreenShape.round on a round Wear OS face
 ```
 
 `read()` returns `null` only on a platform it does not support (web, desktop) or when the platform could not be
@@ -63,7 +70,7 @@ asked. The device is asked once; later calls answer from memory.
 ### The name the user gave the device
 
 ```dart
-const PlatformDeviceDisplayName(userAssignedName: UserAssignedName.preferred);
+const PlatformDeviceProfile(userAssignedName: UserAssignedName.preferred);
 ```
 
 | Mode | What you get on a renamed Galaxy XCover 5 |
@@ -78,7 +85,7 @@ On iOS an app cannot read the name the user gave the device, so every mode gives
 
 ```dart
 // For a User-Agent header or any one-line field: no ; ( ), ASCII only.
-device.userAgentToken; // "Lenovo Tab M8 [4th Gen]", "Ганна's M32" -> "%D0%93...'s M32"
+device.name.userAgentToken; // "Lenovo Tab M8 [4th Gen]", "Ганна's M32" -> "%D0%93...'s M32"
 
 // Two devices with one name:
 distinctLabels([
@@ -93,18 +100,21 @@ The same escaping is there for any other value that goes into the same header, s
 `read()` gave no name:
 
 ```dart
-userAgentToken(device?.fullName ?? model); // model as device_info_plus reports it: "SM-G525F"
+userAgentToken(device?.name.fullName ?? model); // model as device_info_plus reports it: "SM-G525F"
 ```
 
 ### Testing
 
-Depend on the `DeviceDisplayName` interface and pass a fake:
+Depend on the `DeviceProfileReader` interface and pass a fake:
 
 ```dart
-class FakeDeviceName implements DeviceDisplayName {
+class FakeDeviceProfile implements DeviceProfileReader {
   @override
-  Future<DisplayName?> read() async =>
-      const DisplayName('Pixel 9', NameSource.model, kind: DeviceKind.phone);
+  Future<DeviceProfile?> read() async => const DeviceProfile(
+    name: DisplayName('Pixel 9', NameSource.model),
+    kind: DeviceKind.phone,
+    screenShape: ScreenShape.rectangular,
+  );
 }
 ```
 
@@ -117,7 +127,8 @@ class FakeDeviceName implements DeviceDisplayName {
 | **Others** | `null`. |
 
 The kind comes from the Android system features, the build's own `ro.build.characteristics` and the screen width,
-or from the iOS interface idiom.
+or from the iOS interface idiom. The shape comes from Android's `Configuration.isScreenRound`; on iOS it is always
+rectangular, since no iPhone or iPad display is round.
 
 ## Things to know
 
@@ -188,16 +199,33 @@ the phone.
 | Apple | iPad Pro 13-inch (M5) | iOS simulator | iPad Pro 13-inch (M5) - tablet | identifier table | | simulator |
 
 The device kind was checked on Galaxy Tab A7 and Lenovo Tab M8 (`tablet`), Redmi A5, HUAWEI nova 11i and Galaxy M32
-(`phone`) and both simulators; a foldable, a watch and a TV have not been run.
+(`phone`) and both simulators; a round Wear OS emulator (192 dp) gave `watch` and `ScreenShape.round`. A foldable
+and a TV have not been run.
 
 </details>
+
+## Moving from device_display_name
+
+`device_profile` is `device_display_name` with the kind and the shape of the display beside the name, from the same
+one read. The name, its sources and the user-assigned modes are unchanged.
+
+| device_display_name | device_profile |
+|---|---|
+| `PlatformDeviceDisplayName().read()` -> `DisplayName?` | `PlatformDeviceProfile().read()` -> `DeviceProfile?` |
+| `DeviceDisplayName` | `DeviceProfileReader` |
+| `name.name`, `name.fullName`, `name.source` | `profile.name.name`, `profile.name.fullName`, `profile.name.source` |
+| `name.kind` | `profile.kind` |
+| - | `profile.screenShape` |
+| `chooseAndroidName`, `chooseIosName(machine, idiom:)` | `chooseAndroidProfile`, `chooseIosProfile(machine, idiom:)`; `chooseAndroidName` and `chooseIosName(machine)` give the name alone |
+
+The method channel is `device_profile`; the two plugins do not share it, so an app moves over in one step.
 
 ## Repository
 
 | Path | What |
 |---|---|
 | `lib/` | the plugin |
-| `example/` | an example app that shows the name, the kind and every source the plugin read |
+| `example/` | an example app that shows the name, the kind, the shape and every source the plugin read |
 | `tool/apple_identifiers/` | generates the table of Apple identifiers |
 
 ## License

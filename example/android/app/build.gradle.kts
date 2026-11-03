@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.serdun.device_display_name_example"
+    namespace = "com.serdun.device_profile_example"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -15,7 +15,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.serdun.device_display_name_example"
+        applicationId = "com.serdun.device_profile_example"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

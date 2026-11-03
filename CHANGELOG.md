@@ -1,38 +1,27 @@
-## 0.1.1
-
-### Added
-
-- `userAgentToken(String)` exported: the escaping of `DisplayName.userAgentToken` for any other value that goes
-  into the same header, such as the model an app sends when `read()` gave no name.
-
-### Changed
-
-- Requirements: Android Gradle Plugin 8.13 or later (the plugin builds and runs in an app on 8.13).
-
 ## 0.1.0
 
+The first release as `device_profile`, the successor of
+[device_display_name](https://pub.dev/packages/device_display_name) 0.1.1: what the device is, from one read of the
+platform - its name, its kind and the shape of its display.
+
 ### Added
 
-- `DeviceDisplayName.read()` and its platform-backed implementation `PlatformDeviceDisplayName`, returning a
-  `DisplayName` with the name, its `NameSource` and the key it was read from.
-- Android: the maker's factory name from `Settings.Global` (Samsung `default_device_name`, Huawei/Honor
-  `unified_default_device_name`) or from its system properties (Xiaomi, OPPO/realme/OnePlus, vivo, Huawei, ZTE,
-  Transsion, Lenovo/Motorola, HMD, Sony, Asus, LG, Umidigi); `Build.MODEL` when it already is a name; the brand and
-  the model otherwise. Placeholders, codenames and hardware codes are rejected.
-- Android: the user-assigned name through `userAssignedName`: `never` (default), `fallback` or `preferred`.
-- iOS: the hardware identifier looked up in a generated table of Apple identifiers; the identifier itself when
-  the table does not know it.
-- Android: only the device maker's keys are read (`androidKeysFor`), after a first read of the build fields:
-  another maker's vendor key is usually blocked by SELinux and logs an "Access denied finding property" line.
-- vivo: `Settings.Global wifi_hotspot_default_name` and `ro.vivo.product.release.name`; the brand is put in front
-  of vivo and Huawei names that lack it ("T5x 5G" -> "vivo T5x 5G", "nova 13" -> "HUAWEI nova 13").
-- `DisplayName.kind` (`DeviceKind`: phone, tablet, foldable, watch, tv, car, desktop, headset, unknown) from the
-  Android system features, `ro.build.characteristics` and the smallest screen width, or the iOS interface idiom.
-- `DisplayName.fullName` with the brand in front, `DisplayName.userAgentToken` safe for a header, and
-  `distinctLabels` for a list of devices that share a name.
-- `readSources()` with the raw values the platform read.
-- Other platforms, and every failure, answer `null`.
+- `DeviceProfile` with `name` (`DisplayName`), `kind` (`DeviceKind`) and `screenShape` (`ScreenShape`), given by
+  `PlatformDeviceProfile.read()` behind the `DeviceProfileReader` interface.
+- `ScreenShape.round` or `ScreenShape.rectangular`: Android's `Configuration.isScreenRound`, read in the same call as
+  the name; always rectangular on iOS.
+- `chooseAndroidProfile` and `chooseIosProfile`, which turn what the platform read into a profile.
+
+### Changed (from device_display_name 0.1.1)
+
+- `DisplayName` no longer carries the kind: it is `DeviceProfile.kind`.
+- `chooseIosName` takes only the identifier; the idiom goes to `chooseIosProfile`.
+- The method channel and the Android package are `device_profile` and `com.serdun.device_profile`.
+
+Everything else - where the name is read, the user-assigned modes, `userAgentToken`, `distinctLabels`,
+`readSources()` - is as in device_display_name 0.1.1.
 
 ### Requirements
 
-- Flutter 3.47 or later; on Android an app built with Android Gradle Plugin 9 or later.
+- Flutter 3.47 or later; Android 7.0 (API 24) or later, built with Android Gradle Plugin 8.13 or later; iOS 15 or
+  later.

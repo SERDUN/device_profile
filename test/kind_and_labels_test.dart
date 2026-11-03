@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:device_display_name/device_display_name.dart';
+import 'package:device_profile/device_profile.dart';
 
 void main() {
   group('androidKind', () {
@@ -81,7 +81,7 @@ void main() {
     expect(iosKind(null), DeviceKind.unknown);
   });
 
-  group('the chosen name carries the kind', () {
+  group('the profile carries the kind and the shape', () {
     test('Galaxy Tab A7: a tablet', () {
       const sources = AndroidNameSources(
         manufacturer: 'samsung',
@@ -90,12 +90,16 @@ void main() {
         globalSettings: {'default_device_name': 'Galaxy Tab A7'},
         smallestScreenWidthDp: 800,
       );
-      expect(chooseAndroidName(sources).kind, DeviceKind.tablet);
+      expect(chooseAndroidProfile(sources).kind, DeviceKind.tablet);
+      expect(
+        chooseAndroidProfile(sources).screenShape,
+        ScreenShape.rectangular,
+      );
     });
 
     test('an iPhone: a phone', () {
       expect(
-        chooseIosName('iPhone13,1', idiom: 'phone').kind,
+        chooseIosProfile('iPhone13,1', idiom: 'phone').kind,
         DeviceKind.phone,
       );
     });
